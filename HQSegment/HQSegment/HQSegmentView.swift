@@ -32,7 +32,7 @@ class HQSegmentView: UIScrollView {
     fileprivate var slider: UIView!
     fileprivate var titleWidthArray = [CGFloat]()
     fileprivate var selectedBtn: UIButton!
-
+    
     convenience init(frame: CGRect, titleArray: [String], titleFont: CGFloat, titleColor: UIColor, titleSelectColor: UIColor, style: HQSegmentStyle, titleChooseBlock: @escaping TitleChooseBlock) {
         self.init(frame: frame)
         
@@ -103,6 +103,12 @@ extension HQSegmentView {
         
         self.contentSize = CGSize(width: totalWidth, height: 0)
         
+        // contentSize.width 大于 frame.size.width 情况 居中对齐
+        let tempValue = self.contentSize.width - self.frame.size.width
+        if tempValue < 0 {
+            self.setContentOffset(CGPoint(x: tempValue*0.5, y: 0), animated: false)
+        }
+        
     }
     
     fileprivate func getTitleWidth(_ title: String, font: CGFloat) -> CGFloat {
@@ -139,14 +145,22 @@ extension HQSegmentView {
         }
         
         self.selectedBtn = button
-        var offsetX = button.center.x - self.frame.size.width*0.5
-        if offsetX < 0 {
-            offsetX = 0
+        
+        let tempValue = self.contentSize.width - self.frame.size.width
+        
+        // contentSize.width 大于 frame.size.width 情况
+        if tempValue > 0 {
+            
+            var offsetX = button.center.x - self.frame.size.width*0.5
+            if offsetX < 0 {
+                offsetX = 0
+            }
+            if offsetX > tempValue {
+                offsetX = tempValue
+            }
+            self.setContentOffset(CGPoint(x: offsetX, y: 0), animated: true)
+            
         }
-        if offsetX > self.contentSize.width - self.frame.size.width {
-            offsetX = self.contentSize.width - self.frame.size.width
-        }
-        self.setContentOffset(CGPoint(x: offsetX, y: 0), animated: true)
         
         if let titleChooseBlock = titleChooseBlock {
             titleChooseBlock(button.tag)
@@ -159,3 +173,4 @@ extension HQSegmentView {
 private extension Selector {
     static let buttonClick = #selector(HQSegmentView.buttonClick(_:))
 }
+
